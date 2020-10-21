@@ -523,11 +523,79 @@ static void example_ble_mesh_sensor_timeout(uint32_t opcode)
     // example_ble_mesh_send_sensor_message(opcode, adress);
 }
 
+#define accessorySensorLimit 10
+
+#define accessoryLimit 5
+// const int accessorySensorLimit = 10;
+
+// struct State {
+//     int sesnorID;
+//     int sensorValue;
+// };
+
+// struct AccessoryConfiguration {
+//     struct State state[accessorySensorLimit];
+//     int addres;
+// };
+
 struct {
     struct {
-        int sensorValue[10][10];
-    } state;
-} accessoryconfiguration;
+        uint16_t sesnorID;
+        uint16_t sensorValue;
+    }state[accessorySensorLimit];
+    uint16_t addres;
+}accessoryconfiguration[accessoryLimit];
+
+// struct AccessoryConfiguration accessoryconfiguration[accessoryLimit]
+
+static void add_data_to_struct (uint16_t addres, uint16_t sensor, uint16_t values)
+{
+    printf("Adres %d\n", addres);
+    printf("Sensor %d\n", sensor);
+    printf("Wartosc %d\n", values);
+    for(int i=0;i<=accessoryLimit;i++){
+        if(addres == accessoryconfiguration[i].addres){
+            printf("i %u\n", i);
+            for(int x=0;x<=accessorySensorLimit;x++){
+                if(sensor == accessoryconfiguration[i].state[x].sesnorID){
+                    printf("Yes if11\n");
+                    printf("x %u\n", x);
+                    accessoryconfiguration[i].state[x].sensorValue=values;
+                    printf("Uzupełniam %d\n",accessoryconfiguration[i].state[x].sensorValue);
+                    return;
+                }
+            }
+            for(int x=0;x<=accessorySensorLimit;x++){
+                if(accessoryconfiguration[i].state[x].sesnorID==0){
+                    printf("Yes if12\n");
+                    printf("x %u\n", x);
+                    accessoryconfiguration[i].state[x].sesnorID=sensor;
+                    accessoryconfiguration[i].state[x].sensorValue=values;
+                    printf("Nowy Sensor %d\n",accessoryconfiguration[i].state[x].sensorValue);
+                    return;
+                }
+            }
+        }
+    }
+    for(int i=0;i<=accessoryLimit;i++){
+        if(accessoryconfiguration[i].addres==0){
+            printf("i %u\n", i);
+            accessoryconfiguration[i].addres=addres;
+            for(int x=0;x<=accessorySensorLimit;x++){
+                if(accessoryconfiguration[i].state[x].sesnorID == 0){
+                    printf("Yes first if21\n");
+                    printf("x %u\n", x);
+                    accessoryconfiguration[i].state[x].sesnorID=sensor;
+                    accessoryconfiguration[i].state[x].sensorValue=values;
+                    printf("Nowe urzadzenie %d\n",accessoryconfiguration[i].state[x].sensorValue);
+                    return;
+                }
+            }
+        }
+
+    }
+    printf("Error");
+}
 
 
 static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_event_t event,
@@ -608,18 +676,24 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
                         fmt == ESP_BLE_MESH_SENSOR_DATA_FORMAT_A ? "A" : "B", data_len, prop_id);
                     if (data_len != ESP_BLE_MESH_SENSOR_DATA_ZERO_LEN) {
                         ESP_LOG_BUFFER_HEX("Sensor Data", data + mpid_len, data_len + 1);
-                        printf("%d\n", *data);
-                        accessoryconfiguration.state.sensorValue[param->params->ctx.addr][prop_id] = *(data + mpid_len);
-                        printf("Test ");
-                        printf("%u\n", (param->params->ctx.addr));
-                        printf("%u\n", (prop_id));
-                        printf("%u\n", (accessoryconfiguration.state.sensorValue[5][1]));
-                        printf("Test ");
-                        printf("%u\n", *(data+mpid_len));
-                        printf("%u\n", fmt);
+                        add_data_to_struct((param->params->ctx.addr),prop_id,*(data + mpid_len));
+                        // printf("%d\n", accessoryconfiguration[0].state[0].sensorValue);
+                        // printf("%d\n", accessoryconfiguration[0].state[1].sensorValue);
+                        // printf("%d\n", accessoryconfiguration[0].state[2].sensorValue);
+                        // printf("%d\n", accessoryconfiguration[1].state[0].sensorValue);
+                        // printf("%d\n", accessoryconfiguration[1].state[1].sensorValue);
+                        // printf("%d\n", accessoryconfiguration[1].state[2].sensorValue);
+                        // accessoryconfiguration.state.sensorValue[param->params->ctx.addr][prop_id] = *(data + mpid_len);
+                        // printf("Test ");
+                        // printf("%u\n", (param->params->ctx.addr));
+                        // printf("%u\n", (prop_id));
+                        // printf("%u\n", (accessoryconfiguration.state.sensorValue[5][1]));
+                        // printf("Test ");
+                        // printf("%u\n", *(data+mpid_len));
+                        // printf("%u\n", fmt);
                         length += mpid_len + data_len + 1;
                         data += mpid_len + data_len + 1;
-                        printf("%u\n", *data);
+                        // printf("%u\n", *data);
                     } else {
                         length += mpid_len;
                         data += mpid_len;
