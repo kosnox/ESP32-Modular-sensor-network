@@ -1,1 +1,1 @@
-# ESP32-Master-Slave-overIP
+# ESP32-Modular-Sensor-Network
