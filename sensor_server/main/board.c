@@ -1,6 +1,6 @@
 /* board.c - Board-specific hooks */
 
-/*
+/*Made based on:
  * Copyright (c) 2017 Intel Corporation
  * Additional Copyright (c) 2018 Espressif Systems (Shanghai) PTE LTD
  *
