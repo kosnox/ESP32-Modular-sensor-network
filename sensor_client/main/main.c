@@ -1,6 +1,6 @@
 /* main.c - Application main entry point */
 
-/*
+/*Made based on
  * Copyright (c) 2018 Espressif Systems (Shanghai) PTE LTD
  *
  * SPDX-License-Identifier: Apache-2.0
@@ -37,6 +37,9 @@
 
 #define APP_KEY_IDX         0x0000
 #define APP_KEY_OCTET       0x12
+
+#define accessorySensorLimit 10
+#define accessoryLimit 5
 
 #define COMP_DATA_1_OCTET(msg, offset)      (msg[offset])
 #define COMP_DATA_2_OCTET(msg, offset)      (msg[offset + 1] << 8 | msg[offset])
@@ -451,40 +454,6 @@ void example_ble_mesh_send_sensor_message(uint32_t opcode,int adress)
     // printf("%u\n", (param->status_cb.sensor_status.marshalled_sensor_data->data));
 }
 
-// void example_ble_mesh_send_sensor_message(uint32_t opcode)
-// {
-//     esp_ble_mesh_sensor_client_get_state_t get = {0};
-//     esp_ble_mesh_client_common_param_t common = {0};
-//     esp_ble_mesh_node_t *node = NULL;
-//     esp_err_t err = ESP_OK;
-
-//     node = esp_ble_mesh_provisioner_get_node_with_addr(server_address);
-//     if (node == NULL) {
-//         ESP_LOGE(TAG, "Node 0x%04x not exists", server_address);
-//         return;
-//     }
-
-//     example_ble_mesh_set_msg_common(&common, node, sensor_client.model, opcode);
-//     switch (opcode) {
-//     case ESP_BLE_MESH_MODEL_OP_SENSOR_CADENCE_GET:
-//         get.cadence_get.property_id = sensor_prop_id;
-//         break;
-//     case ESP_BLE_MESH_MODEL_OP_SENSOR_SETTINGS_GET:
-//         get.settings_get.sensor_property_id = sensor_prop_id;
-//         break;
-//     case ESP_BLE_MESH_MODEL_OP_SENSOR_SERIES_GET:
-//         get.series_get.property_id = sensor_prop_id;
-//         break;
-//     default:
-//         break;
-//     }
-
-//     err = esp_ble_mesh_sensor_client_get_state(&common, &get);
-//     if (err != ESP_OK) {
-//         ESP_LOGE(TAG, "Failed to send sensor message 0x%04x", opcode);
-//     }
-// }
-
 static void example_ble_mesh_sensor_timeout(uint32_t opcode)
 {
     switch (opcode) {
@@ -523,21 +492,6 @@ static void example_ble_mesh_sensor_timeout(uint32_t opcode)
     // example_ble_mesh_send_sensor_message(opcode, adress);
 }
 
-#define accessorySensorLimit 10
-
-#define accessoryLimit 5
-// const int accessorySensorLimit = 10;
-
-// struct State {
-//     int sesnorID;
-//     int sensorValue;
-// };
-
-// struct AccessoryConfiguration {
-//     struct State state[accessorySensorLimit];
-//     int addres;
-// };
-
 struct {
     struct {
         uint16_t sesnorID;
@@ -545,8 +499,6 @@ struct {
     }state[accessorySensorLimit];
     uint16_t addres;
 }accessoryconfiguration[accessoryLimit];
-
-// struct AccessoryConfiguration accessoryconfiguration[accessoryLimit]
 
 static void add_data_to_struct (uint16_t addres, uint16_t sensor, uint16_t values)
 {
@@ -677,23 +629,8 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
                     if (data_len != ESP_BLE_MESH_SENSOR_DATA_ZERO_LEN) {
                         ESP_LOG_BUFFER_HEX("Sensor Data", data + mpid_len, data_len + 1);
                         add_data_to_struct((param->params->ctx.addr),prop_id,*(data + mpid_len));
-                        // printf("%d\n", accessoryconfiguration[0].state[0].sensorValue);
-                        // printf("%d\n", accessoryconfiguration[0].state[1].sensorValue);
-                        // printf("%d\n", accessoryconfiguration[0].state[2].sensorValue);
-                        // printf("%d\n", accessoryconfiguration[1].state[0].sensorValue);
-                        // printf("%d\n", accessoryconfiguration[1].state[1].sensorValue);
-                        // printf("%d\n", accessoryconfiguration[1].state[2].sensorValue);
-                        // accessoryconfiguration.state.sensorValue[param->params->ctx.addr][prop_id] = *(data + mpid_len);
-                        // printf("Test ");
-                        // printf("%u\n", (param->params->ctx.addr));
-                        // printf("%u\n", (prop_id));
-                        // printf("%u\n", (accessoryconfiguration.state.sensorValue[5][1]));
-                        // printf("Test ");
-                        // printf("%u\n", *(data+mpid_len));
-                        // printf("%u\n", fmt);
                         length += mpid_len + data_len + 1;
                         data += mpid_len + data_len + 1;
-                        // printf("%u\n", *data);
                     } else {
                         length += mpid_len;
                         data += mpid_len;
