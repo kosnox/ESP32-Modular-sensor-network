@@ -1,7 +1,8 @@
 | Supported Targets | ESP32 |
 | ----------------- | ----- |
 
-ESP BLE Mesh Sensor Client Example
+
+This has been writen based on the ESP BLE Mesh Sensor Client Example
 ==================================
 
 This example demonstrates how to create a sensor client model in Provisioner, and the [sensor server example](../sensor_server) demonstrates how to create a sensor server model and a sensor setup server model in an unprovisioned device.
