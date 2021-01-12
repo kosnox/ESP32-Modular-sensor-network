@@ -28,15 +28,15 @@
 #include <sys/param.h>
 #include <esp_http_server.h>
 
-#define EXAMPLE_WIFI_SSID "KIAEIoT"
-#define EXAMPLE_WIFI_PASS "123456789"
+#define EXAMPLE_WIFI_SSID "SSID"
+#define EXAMPLE_WIFI_PASS "PASSWORD"
 
 static const char *TAG1 = "APP";
 char *pom_values = "2137";
 char *pom_sensor = "1337";
 //char *resp_str = "<html><head><META HTTP-EQUIV=\"refresh\"CONTENT=\"5\"></head><body><br/><br/><h2><div align='center'>Sensor: <b>OFF</b></div></h2></body></html>";
 char resp_str[500] = "";
-char start[61] = "<html><head></head><body><br/><br/><h2><div align='center'> ";
+char start[99] = "<html><head><META HTTP-EQUIV=\"refresh\"CONTENT=\"5\"></head><body><br/><br/><h2><div align='center'> ";
 char sensor_c[9] = "Sensor: ";
 char value_c[9] = " value: ";
 char end[26] = "</div></h2></body></html>";
@@ -565,19 +565,19 @@ void make_text(int i, int x)
     sprintf(pom_values, "%d", accessoryconfiguration[i].state[x].sensorValue);
     pom_sensor = malloc(16);
     sprintf(pom_sensor, "%d", accessoryconfiguration[i].state[x].sesnorID);
-    if ((0 == i) && (0 == x))
-    {
-        strcat(resp_str, start);
-    }
+//   if ((0 == i) && (0 == x))
+//   {
+//       strcat(resp_str, start);
+//   }
     strcat(resp_str, sensor_c);
     strcat(resp_str, pom_sensor);
     strcat(resp_str, value_c);
     strcat(resp_str, pom_values);
     strcat(resp_str, "<br/>");
-    if ((accessoryLimit == i) && (accessorySensorLimit == x))
-    {
-        strcat(resp_str, end);
-    }
+ //   if ((accessoryLimit == i) && (accessorySensorLimit == x))
+ //   {
+ //       strcat(resp_str, end);
+ //   }
 }
 
 static void add_data_to_struct(uint16_t addres, uint16_t sensor, uint16_t values)
@@ -719,6 +719,8 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
                 uint8_t *data = param->status_cb.sensor_status.marshalled_sensor_data->data;
                 printf("%u\n", *data);
                 uint16_t length = 0;
+                strcpy(resp_str, "");
+                strcat(resp_str, start);
                 for (; length < param->status_cb.sensor_status.marshalled_sensor_data->len;)
                 {
                     uint8_t fmt = ESP_BLE_MESH_GET_SENSOR_DATA_FORMAT(data);
@@ -740,6 +742,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
                         data += mpid_len;
                     }
                 }
+                strcat(resp_str, start);
             }
             break;
         case ESP_BLE_MESH_MODEL_OP_SENSOR_COLUMN_GET:
