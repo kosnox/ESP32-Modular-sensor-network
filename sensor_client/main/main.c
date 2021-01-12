@@ -565,24 +565,18 @@ void make_text(int i, int x)
     sprintf(pom_values, "%d", accessoryconfiguration[i].state[x].sensorValue);
     pom_sensor = malloc(16);
     sprintf(pom_sensor, "%d", accessoryconfiguration[i].state[x].sesnorID);
-//   if ((0 == i) && (0 == x))
-//   {
-//       strcat(resp_str, start);
-//   }
+
     strcat(resp_str, sensor_c);
     strcat(resp_str, pom_sensor);
     strcat(resp_str, value_c);
     strcat(resp_str, pom_values);
     strcat(resp_str, "<br/>");
- //   if ((accessoryLimit == i) && (accessorySensorLimit == x))
- //   {
- //       strcat(resp_str, end);
- //   }
+ 
 }
 
 static void add_data_to_struct(uint16_t addres, uint16_t sensor, uint16_t values)
 {
-    // strcpy(resp_str, "");
+    
     printf("Adres %d\n", addres);
     printf("Sensor %d\n", sensor);
     printf("Wartosc %d\n", values);
@@ -742,7 +736,7 @@ static void example_ble_mesh_sensor_client_cb(esp_ble_mesh_sensor_client_cb_even
                         data += mpid_len;
                     }
                 }
-                strcat(resp_str, start);
+                strcat(resp_str, end);
             }
             break;
         case ESP_BLE_MESH_MODEL_OP_SENSOR_COLUMN_GET:
@@ -863,7 +857,6 @@ esp_err_t hello_get_handler(httpd_req_t *req)
     }
 
     //buf_len = httpd_req_get_url_query_len(req) + 1;
-
     //   if (buf_len > 1)
     //   {
     //       buf = malloc(buf_len);
@@ -884,8 +877,6 @@ esp_err_t hello_get_handler(httpd_req_t *req)
     //       free(buf);
     //   }
 
-    //<META HTTP-EQUIV=\"refresh\"CONTENT=\"5\">
-    //"<br/><br/><h2><div align='center'>LED is <b>ON</b></div></h2>"
     //char *resp_str = "<html><head><META HTTP-EQUIV=\"refresh\"CONTENT=\"5\"></head><body><br/><br/><h2><div align='center'>Sensor: <b>OFF</b></div></h2></body></html>";
 
     httpd_resp_send(req, resp_str, strlen(resp_str));
