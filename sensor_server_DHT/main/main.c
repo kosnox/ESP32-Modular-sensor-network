@@ -23,6 +23,10 @@
 #include "ble_mesh_example_init.h"
 #include "board.h"
 
+#include "dht.h"
+
+
+
 #define TAG "EXAMPLE"
 
 #define CID_ESP     0x02E5
@@ -36,8 +40,8 @@
  * Minimum value: -64.0, maximum value: 63.5.
  * A value of 0xFF represents 'value is not known'.
  */
-static int8_t indoor_temp = 40;     /* Indoor temperature is 20 Degrees Celsius */
-static int8_t outdoor_temp = 50;    /* Outdoor temperature is 30 Degrees Celsius */
+static float indoor_temp;     /* Indoor temperature is 20 Degrees Celsius */
+static float indoor_hum;    /* Indoor hum in % */
 
 #define SENSOR_POSITIVE_TOLERANCE   ESP_BLE_MESH_SENSOR_UNSPECIFIED_POS_TOLERANCE
 #define SENSOR_NEGATIVE_TOLERANCE   ESP_BLE_MESH_SENSOR_UNSPECIFIED_NEG_TOLERANCE
@@ -147,6 +151,16 @@ static esp_ble_mesh_prov_t provision = {
     .uuid = dev_uuid,
 };
 
+static void getSensorsValues(float *indoor_temp, float *indoor_hum){
+    int16_t hum, temp;
+    dht_read_data(DHT_TYPE_AM2301, 23, &hum, &temp);
+    *indoor_temp = (float)temp/10.0f;
+    *indoor_hum =(float)hum/10.0f;
+    printf("wilg: ");
+    printf("%f", (float)hum/10.0f);
+    printf("temp: ");
+    printf("%f", (float)temp/10.0f);
+} 
 static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
 {
     ESP_LOGI(TAG, "net_idx 0x%03x, addr 0x%04x", net_idx, addr);
@@ -154,8 +168,11 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
     board_led_operation(LED_G, LED_OFF);
 
     /* Initialize the indoor and outdoor temperatures for each sensor.  */
-    net_buf_simple_add_u8(&sensor_data_0, indoor_temp);
-    net_buf_simple_add_u8(&sensor_data_1, outdoor_temp);
+    getSensorsValues(&indoor_temp, &indoor_hum);
+    net_buf_simple_add_u8(&sensor_data_0, indoor_temp); //////TU IDZIE FUNKCJA
+    net_buf_simple_add_u8(&sensor_data_1, indoor_hum);
+    net_buf_simple_reset(&sensor_data_0);
+    net_buf_simple_reset(&sensor_data_1);
 }
 
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
@@ -363,6 +380,12 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
 {
     uint8_t mpid_len = 0, data_len = 0;
     uint32_t mpid = 0;
+    getSensorsValues(&indoor_temp, &indoor_hum);
+    net_buf_simple_add_u8(&sensor_data_0, indoor_temp); // MOJA FUNKCJA
+    net_buf_simple_reset(&sensor_data_0);
+
+    net_buf_simple_add_u8(&sensor_data_1, indoor_hum); //MOJA FUNKCJA2
+    net_buf_simple_reset(&sensor_data_1);
 
     if (state == NULL || data == NULL) {
         ESP_LOGE(TAG, "%s, Invalid parameter", __func__);
@@ -614,7 +637,7 @@ static esp_err_t ble_mesh_init(void)
 void app_main(void)
 {
     esp_err_t err;
-
+    
     ESP_LOGI(TAG, "Initializing...");
 
     err = nvs_flash_init();
