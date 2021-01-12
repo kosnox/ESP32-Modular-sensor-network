@@ -28,8 +28,8 @@
 #include <sys/param.h>
 #include <esp_http_server.h>
 
-#define EXAMPLE_WIFI_SSID "SSID"
-#define EXAMPLE_WIFI_PASS "PASSWORD"
+#define EXAMPLE_WIFI_SSID "KIAEIoT"
+#define EXAMPLE_WIFI_PASS "123456789"
 
 static const char *TAG1 = "APP";
 char *pom_values = "2137";
@@ -582,7 +582,7 @@ void make_text(int i, int x)
 
 static void add_data_to_struct(uint16_t addres, uint16_t sensor, uint16_t values)
 {
-    strcpy(resp_str, "");
+    // strcpy(resp_str, "");
     printf("Adres %d\n", addres);
     printf("Sensor %d\n", sensor);
     printf("Wartosc %d\n", values);

@@ -642,7 +642,8 @@ float function_distance(void)
     vTaskDelay(10 / portTICK_PERIOD_MS);
     gpio_set_level(trig, 0);
     duration = pulse_In(echo, 1);
-    distance = duration * 0.034 / 2;
+    float distance = duration * 0.034 / 2;
+    printf("%.2f", distance);
     return distance;
 }
 void app_main(void)
