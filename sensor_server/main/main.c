@@ -153,9 +153,13 @@ static esp_ble_mesh_prov_t provision = {
 
 static void getSensorsValues(float *indoor_temp, float *indoor_hum){
     int16_t hum, temp;
-    dht_read_data(DHT_TYPE_DHT11, 23, &hum, &temp);
+    dht_read_data(DHT_TYPE_AM2301, 23, &hum, &temp);
     *indoor_temp = (float)temp/10.0f;
     *indoor_hum =(float)hum/10.0f;
+    printf("wilg: ");
+    printf("%f", (float)hum/10.0f);
+    printf("temp: ");
+    printf("%f", (float)temp/10.0f);
 } 
 static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
 {
