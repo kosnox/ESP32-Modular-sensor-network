@@ -151,16 +151,7 @@ static esp_ble_mesh_prov_t provision = {
     .uuid = dev_uuid,
 };
 
-static void getSensorsValues(float *indoor_temp, float *indoor_hum){
-    int16_t hum, temp;
-    dht_read_data(DHT_TYPE_AM2301, 23, &hum, &temp);
-    *indoor_temp = (float)temp/10.0f;
-    *indoor_hum =(float)hum/10.0f;
-    printf("wilg: ");
-    printf("%f", (float)hum/10.0f);
-    printf("temp: ");
-    printf("%f", (float)temp/10.0f);
-} 
+
 static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32_t iv_index)
 {
     ESP_LOGI(TAG, "net_idx 0x%03x, addr 0x%04x", net_idx, addr);
@@ -168,7 +159,7 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
     board_led_operation(LED_G, LED_OFF);
 
     /* Initialize the indoor and outdoor temperatures for each sensor.  */
-    getSensorsValues(&indoor_temp, &indoor_hum);
+    dht_read_float_data(DHT_TYPE_DHT11, 23, &indoor_temp, &indoor_hum);
     net_buf_simple_add_u8(&sensor_data_0, indoor_temp); //////TU IDZIE FUNKCJA
     net_buf_simple_add_u8(&sensor_data_1, indoor_hum);
     net_buf_simple_reset(&sensor_data_0);
@@ -380,7 +371,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
 {
     uint8_t mpid_len = 0, data_len = 0;
     uint32_t mpid = 0;
-    getSensorsValues(&indoor_temp, &indoor_hum);
+    dht_read_float_data(DHT_TYPE_DHT11, 23, &indoor_temp, &indoor_hum);
     net_buf_simple_add_u8(&sensor_data_0, indoor_temp); // MOJA FUNKCJA
     net_buf_simple_reset(&sensor_data_0);
 
