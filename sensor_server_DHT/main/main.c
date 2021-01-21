@@ -35,6 +35,9 @@
 #define SENSOR_PROPERTY_ID_0        0x0056  /* Present Indoor Ambient Temperature */
 #define SENSOR_PROPERTY_ID_1        0x005B  /* Present Outdoor Ambient Temperature */
 
+
+
+#define SENSOR_TYPE DHT_TYPE_DHT11
 /* The characteristic of the two device properties is "Temperature 8", which is
  * used to represent a measure of temperature with a unit of 0.5 degree Celsius.
  * Minimum value: -64.0, maximum value: 63.5.
@@ -159,7 +162,7 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
     board_led_operation(LED_G, LED_OFF);
 
     /* Initialize the indoor and outdoor temperatures for each sensor.  */
-    dht_read_float_data(DHT_TYPE_DHT11, 23, &indoor_temp, &indoor_hum);
+    dht_read_float_data(SENSOR_TYPE, 23, &indoor_temp, &indoor_hum);
     net_buf_simple_add_u8(&sensor_data_0, indoor_temp); //////TU IDZIE FUNKCJA
     net_buf_simple_add_u8(&sensor_data_1, indoor_hum);
     net_buf_simple_reset(&sensor_data_0);
@@ -371,7 +374,7 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
 {
     uint8_t mpid_len = 0, data_len = 0;
     uint32_t mpid = 0;
-    dht_read_float_data(DHT_TYPE_DHT11, 23, &indoor_temp, &indoor_hum);
+    dht_read_float_data(SENSOR_TYPE, 23, &indoor_temp, &indoor_hum);
     net_buf_simple_add_u8(&sensor_data_0, indoor_temp); // MOJA FUNKCJA
     net_buf_simple_reset(&sensor_data_0);
 
