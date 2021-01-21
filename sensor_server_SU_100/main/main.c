@@ -22,22 +22,31 @@
 
 #include "ble_mesh_example_init.h"
 #include "board.h"
+#include "driver/gpio.h"
+#include "sdkconfig.h"
 
+#define echo 4
+#define trig 5
+
+int duration = 0;
+int8_t distance = 0;
+float function_distance(void);
+unsigned long pulse_In(uint8_t pin, uint8_t state);
 #define TAG "EXAMPLE"
 
 #define CID_ESP     0x02E5
 
 /* Sensor Property ID */
 #define SENSOR_PROPERTY_ID_0        0x0056  /* Present Indoor Ambient Temperature */
-#define SENSOR_PROPERTY_ID_1        0x005B  /* Present Outdoor Ambient Temperature */
+
 
 /* The characteristic of the two device properties is "Temperature 8", which is
  * used to represent a measure of temperature with a unit of 0.5 degree Celsius.
  * Minimum value: -64.0, maximum value: 63.5.
  * A value of 0xFF represents 'value is not known'.
  */
-static int8_t indoor_temp = 40;     /* Indoor temperature is 20 Degrees Celsius */
-static int8_t outdoor_temp = 50;    /* Outdoor temperature is 30 Degrees Celsius */
+//int8_t indoor_temp = 20;     /* Indoor temperature is 20 Degrees Celsius */
+
 
 #define SENSOR_POSITIVE_TOLERANCE   ESP_BLE_MESH_SENSOR_UNSPECIFIED_POS_TOLERANCE
 #define SENSOR_NEGATIVE_TOLERANCE   ESP_BLE_MESH_SENSOR_UNSPECIFIED_NEG_TOLERANCE
@@ -67,9 +76,9 @@ static esp_ble_mesh_cfg_srv_t config_server = {
 };
 
 NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_0, 1);
-NET_BUF_SIMPLE_DEFINE_STATIC(sensor_data_1, 1);
 
-static esp_ble_mesh_sensor_state_t sensor_states[2] = {
+
+static esp_ble_mesh_sensor_state_t sensor_states[1] = {
     /* Mesh Model Spec:
      * Multiple instances of the Sensor states may be present within the same model,
      * provided that each instance has a unique value of the Sensor Property ID to
@@ -96,18 +105,7 @@ static esp_ble_mesh_sensor_state_t sensor_states[2] = {
         .sensor_data.format = ESP_BLE_MESH_SENSOR_DATA_FORMAT_A,
         .sensor_data.length = 0, /* 0 represents the length is 1 */
         .sensor_data.raw_value = &sensor_data_0,
-    },
-    [1] = {
-        .sensor_property_id = SENSOR_PROPERTY_ID_1,
-        .descriptor.positive_tolerance = SENSOR_POSITIVE_TOLERANCE,
-        .descriptor.negative_tolerance = SENSOR_NEGATIVE_TOLERANCE,
-        .descriptor.sampling_function = SENSOR_SAMPLE_FUNCTION,
-        .descriptor.measure_period = SENSOR_MEASURE_PERIOD,
-        .descriptor.update_interval = SENSOR_UPDATE_INTERVAL,
-        .sensor_data.format = ESP_BLE_MESH_SENSOR_DATA_FORMAT_A,
-        .sensor_data.length = 0, /* 0 represents the length is 1 */
-        .sensor_data.raw_value = &sensor_data_1,
-    },
+    }
 };
 
 /* 20 octets is large enough to hold two Sensor Descriptor state values. */
@@ -154,8 +152,8 @@ static void prov_complete(uint16_t net_idx, uint16_t addr, uint8_t flags, uint32
     board_led_operation(LED_G, LED_OFF);
 
     /* Initialize the indoor and outdoor temperatures for each sensor.  */
-    net_buf_simple_add_u8(&sensor_data_0, indoor_temp);
-    net_buf_simple_add_u8(&sensor_data_1, outdoor_temp);
+    net_buf_simple_add_u8(&sensor_data_0, function_distance());
+    
 }
 
 static void example_ble_mesh_provisioning_cb(esp_ble_mesh_prov_cb_event_t event,
@@ -363,6 +361,8 @@ static uint16_t example_ble_mesh_get_sensor_data(esp_ble_mesh_sensor_state_t *st
 {
     uint8_t mpid_len = 0, data_len = 0;
     uint32_t mpid = 0;
+    net_buf_simple_add_u8(&sensor_data_0, function_distance());
+    net_buf_simple_reset(&sensor_data_0);
 
     if (state == NULL || data == NULL) {
         ESP_LOGE(TAG, "%s, Invalid parameter", __func__);
@@ -520,7 +520,7 @@ static void example_ble_mesh_sensor_server_cb(esp_ble_mesh_sensor_server_cb_even
 {
     ESP_LOGI(TAG, "Sensor server, event %d, src 0x%04x, dst 0x%04x, model_id 0x%04x",
         event, param->ctx.addr, param->ctx.recv_dst, param->model->model_id);
-
+    function_distance();
     switch (event) {
     case ESP_BLE_MESH_SENSOR_SERVER_RECV_GET_MSG_EVT:
         switch (param->ctx.recv_op) {
@@ -610,9 +610,48 @@ static esp_err_t ble_mesh_init(void)
 
     return ESP_OK;
 }
-
+unsigned long pulse_In(uint8_t pin, uint8_t state) {
+    
+    unsigned long pulseWidth = 0;
+    unsigned long loopCount = 0;
+    unsigned long loopMax = 5000000;
+    
+    // While the pin is *not* in the target state we make sure the timeout hasn't been reached.
+    while ((gpio_get_level(pin)) != state) {
+        if (loopCount++ == loopMax) {
+            return 0;
+        }
+    }
+    
+    // When the pin *is* in the target state we bump the counter while still keeping track of the timeout.
+    while ((gpio_get_level(pin)) == state) {
+        if (loopCount++ == loopMax) {
+            return 0;
+        }
+        pulseWidth++;
+    }
+    
+    // Return the pulse time in microsecond!
+    return pulseWidth/3; // Calculated the pulseWidth 3
+}
+float function_distance(void)
+{
+    gpio_set_level(trig, 0);
+    vTaskDelay(2 / portTICK_PERIOD_MS);
+    gpio_set_level(trig, 1);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
+    gpio_set_level(trig, 0);
+    duration = pulse_In(echo, 1);
+    float distance = duration * 0.034 / 2;
+    printf("%.2f", distance);
+    return distance;
+}
 void app_main(void)
 {
+    gpio_pad_select_gpio(echo);
+    gpio_pad_select_gpio(trig);
+    gpio_set_direction(echo, GPIO_MODE_INPUT);
+    gpio_set_direction(trig, GPIO_MODE_OUTPUT);
     esp_err_t err;
 
     ESP_LOGI(TAG, "Initializing...");
@@ -639,4 +678,5 @@ void app_main(void)
     if (err) {
         ESP_LOGE(TAG, "Bluetooth mesh init failed (err %d)", err);
     }
+    
 }

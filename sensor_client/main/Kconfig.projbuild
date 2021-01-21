@@ -1,0 +1,16 @@
+menu "Example Configuration"
+
+config WIFI_SSID
+    string "KIAEIoT"
+    default "KIAEIoT"
+    help
+        SSID (network name) for the example to connect to.
+
+config WIFI_PASSWORD
+    string "123456789"
+    default "123456789"
+    help
+        WiFi password (WPA or WPA2) for the example to use.
+        Can be left blank if the network has no security set.
+
+endmenu
